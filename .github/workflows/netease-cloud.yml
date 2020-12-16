@@ -1,0 +1,37 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: 网易云打卡升级
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 01 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: 'Install requirements'
+        run: pip3 install -r requirements.txt
+
+      - name: 'Config'
+        run: |
+          if [ '${{ secrets.ACCOUNT }}' != '' ]; then sed -i "s/REPLACE_ACCOUNT/${{ secrets.ACCOUNT }}/g" init.config; fi
+          if [ '${{ secrets.PWD }}' != '' ]; then sed -i "s/REPLACE_PWD/${{ secrets.PWD }}/g" init.config; fi
+          if [ '${{ secrets.API }}' != '' ]; then sed -i "s/REPLACE_API/${{ secrets.API }}/g" init.config; fi
+          if [ '${{ secrets.SCKEY }}' != '' ]; then sed -i "s/REPLACE_SCKEY/${{ secrets.SCKEY }}/g" init.config; fi
+
+      - name: '运行【网易云打卡升级】'
+        run: |
+          if [ '${{ secrets.ACCOUNT }}' != '' ]; then python3 main.py; fi
